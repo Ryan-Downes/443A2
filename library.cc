@@ -109,22 +109,25 @@ void read_fixed_len_page(Page *page, int slot, Record *r){
 	}
 }
 
-///**
-// * Initalize a heapfile to use the file and page size given.
-// */
-//void init_heapfile(Heapfile *heapfile, int page_size, std:: ifstream file){
-//	heapfile->file_ptr = file;
-//	heapfile->page_size = page_size;
-//}
-//
-///**
-// * Allocate another page in the heapfile.  This grows the file by a page.
-// */
-//PageID alloc_page(Heapfile *heapfile){
-//    Page *page = new Page();
-//    int record_size = ATTRIBUTE_SIZE * NUM_ATTRIBUTE;
-//    init_fixed_len_page(page, heapfile->page_size, record_size);
-//
-//    //Page *heap_page = heapfile->file_ptr;
-//    return 0;
-//}
+/**
+ * Initalize a heapfile to use the file and page size given.
+ */
+void init_heapfile(Heapfile *heapfile, int page_size, FILE* file){
+	heapfile->page_ptr = file;
+	heapfile->page_size = page_size;
+
+}
+
+/**
+ * Allocate another page in the heapfile.  This grows the file by a page.
+ */
+PageID alloc_page(Heapfile *heapfile){
+    Page *page = new Page();
+    int record_size = ATTRIBUTE_SIZE * NUM_ATTRIBUTE;
+    init_fixed_len_page(page, heapfile->page_size, record_size);
+
+    FILE* heap_page = (heapfile->page_ptr);
+    std:: ofstream heap;
+    //heap.open()
+    return 0;
+}

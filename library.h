@@ -22,8 +22,9 @@ typedef struct {
 
 
 typedef struct {
-    FILE *file_ptr;
+    FILE *page_ptr;
     int page_size;
+
 } Heapfile;
 
 typedef int PageID;
