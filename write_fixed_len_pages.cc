@@ -56,7 +56,11 @@ int main(int argc, char** argv) {
     int free_slot = fixed_len_page_freeslots(page);
     if(free_slot != fixed_len_page_capacity(page)){
             total_pages++;
-            fwrite(page->data, 1, page->page_size, page_file);
+            for(int k =0;k<fixed_len_page_capacity(page);k++){
+                if(page->mapping[k]=='1'){
+                    fwrite(page->data + k*record_size, 1, record_size, page_file);
+                }
+            }
     }
     ftime(&t);
     int total_run_time = (int) ((t.time * 1000) + t.millitm) - start_time_in_ms;
