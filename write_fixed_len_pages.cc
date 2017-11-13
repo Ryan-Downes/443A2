@@ -1,3 +1,5 @@
+#include "library.cc"
+
 #include <algorithm>
 
 #include <stdlib.h>
@@ -10,9 +12,13 @@
 
 #include <sys/timeb.h>
 
-#include "library.cc"
+#include <string.h>
 
 int main(int argc, char** argv) {
+    if (argc != 4) {
+        printf("Argument is not correct");
+        exit(1);
+    }
     char * buffer = (char*) malloc (2);
     std::ifstream csv_file;
     csv_file.open(argv[1], std::ifstream::in);
@@ -35,13 +41,13 @@ int main(int argc, char** argv) {
         fixed_len_read((char*)line.c_str(), record_size, &r);
         int index = add_fixed_len_page(page, &r);
         fprintf(stdout, "Index: %d\n", index);
-        if (index == -1) {  // page is full
+        if (index == -1) {
             total_pages++;
             fwrite(page->data, 1, page->page_size, page_file);
             fflush(page_file);
             bzero(page->data, page_size);
             for(int k =0;k<fixed_len_page_capacity(page);k++){
-                page->mapping[k]=0;
+                page->mapping[k]='0';
             }
             add_fixed_len_page(page, &r);
         }

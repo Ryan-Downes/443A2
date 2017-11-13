@@ -16,7 +16,7 @@ typedef struct {
     char *data;
     int page_size;
     int slot_size;
-    int mapping [];
+    char mapping [];
     // potential optimization store the number of records
 } Page;
 

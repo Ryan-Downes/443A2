@@ -50,7 +50,7 @@ void init_fixed_len_page(Page *page, int page_size, int slot_size){
 	//Create a bitmap in the page corresponding to the slots, if the corresponding bit is 0, then it means that
 	// slot is empty, if it is 1 then it means the slot has been occupied.
 	for(int i =0; i < page_size/slot_size; i++){
-		page->mapping[i] = 0;
+		page->mapping[i] = '0';
 	}
 }
 /**
@@ -65,7 +65,7 @@ int fixed_len_page_capacity(Page *page){
 int fixed_len_page_freeslots(Page *page){
 	int count = 0;
 	for(int i=0; i < fixed_len_page_capacity(page);i++){
-		if (page->mapping[i]==0){
+		if (page->mapping[i]=='0'){
 			count = count + 1;
 		}
 	}
@@ -84,9 +84,9 @@ int add_fixed_len_page(Page *page, Record *r){
 	}
 	else{
 		for(int i=0; i < fixed_len_page_capacity(page);i++){
-			if (page->mapping[i]==0){
+			if (page->mapping[i]=='0'){
 				write_fixed_len_page(page,i,r);
-				page->mapping[i]=1;
+				page->mapping[i]='1';
 				return i;
 			}
 		}
@@ -103,7 +103,7 @@ void write_fixed_len_page(Page *page, int slot, Record *r){
  * Read a record from the page from a given slot.
  */
 void read_fixed_len_page(Page *page, int slot, Record *r){
-	if(page->mapping[slot] == 1){
+	if(page->mapping[slot] == '1'){
 		char *buf = ((char * )page->data + (slot * (page->slot_size)));
 		fixed_len_read(buf, (page->slot_size), r);
 	}
