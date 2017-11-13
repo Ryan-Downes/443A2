@@ -46,10 +46,10 @@ void fixed_len_read(void *buf, int size, Record *record){
 void init_fixed_len_page(Page *page, int page_size, int slot_size){
 	page->page_size = page_size;
 	page->slot_size = slot_size;
-	page->data = malloc(page_size);
+	page->data = (char*) malloc(page_size);
 	//Create a bitmap in the page corresponding to the slots, if the corresponding bit is 0, then it means that
 	// slot is empty, if it is 1 then it means the slot has been occupied.
-	for(int i =0; i < slot_size; i++){
+	for(int i =0; i < page_size/slot_size; i++){
 		page->mapping[i] = 0;
 	}
 }
@@ -79,7 +79,7 @@ int fixed_len_page_freeslots(Page *page){
  */
 int add_fixed_len_page(Page *page, Record *r){
 	int free_slot = fixed_len_page_freeslots(page);
-	if(free_slot < 0){
+	if(free_slot == 0){
 		return -1;
 	}
 	else{

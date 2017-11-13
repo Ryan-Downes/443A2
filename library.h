@@ -13,7 +13,7 @@ typedef std::vector<V> Record;
 
 typedef struct {
 
-    void *data;
+    char *data;
     int page_size;
     int slot_size;
     int mapping [];
