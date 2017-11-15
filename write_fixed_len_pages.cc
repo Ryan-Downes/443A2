@@ -40,7 +40,6 @@ int main(int argc, char** argv) {
         Record r;
         fixed_len_read((char*)line.c_str(), record_size, &r);
         int index = add_fixed_len_page(page, &r);
-        fprintf(stdout, "Index: %d\n", index);
         if (index == -1) {
             total_pages++;
             fwrite(page->data, 1, page->page_size, page_file);
