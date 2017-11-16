@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     ftime(&t);
     long start_time_in_ms = (t.time * 1000) + t.millitm;
     Page *page;
-    page = (Page *)malloc(sizeof(Page));
+    page = (Page *)malloc(sizeof(Page) + (page_size/record_size));
     page->data = (char *)malloc(page_size);
     init_fixed_len_page(page, page_size, record_size);
     fread(page->data, 1, page->page_size, pageFile);
