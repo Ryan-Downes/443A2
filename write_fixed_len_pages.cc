@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     int page_size = atoi(argv[3]);
     int record_size = ATTRIBUTE_SIZE * NUM_ATTRIBUTE;
     Page *page;
-    page = (Page *)malloc(sizeof(Page));
+    page = (Page *)malloc(sizeof(Page) + (page_size/record_size));
     page->data = (char *)malloc(page_size);
     init_fixed_len_page(page, page_size, record_size);
     int total_records = 0;
@@ -45,9 +45,7 @@ int main(int argc, char** argv) {
             fwrite(page->data, 1, page->page_size, page_file);
             fflush(page_file);
             bzero(page->data, page_size);
-            for(int k =0;k<fixed_len_page_capacity(page);k++){
-                page->mapping[k]='0';
-            }
+            init_fixed_len_page(page, page_size, record_size);
             add_fixed_len_page(page, &r);
         }
         total_records++;
