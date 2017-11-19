@@ -24,7 +24,10 @@ typedef struct {
 typedef struct {
     FILE *page_ptr;
     int page_size;
-
+    PageNode *directoryLL;
+    PageNode tail;
+    int offset;
+    int directorySlotSize;
 } Heapfile;
 
 typedef int PageID;
@@ -34,6 +37,17 @@ typedef struct {
     int slot;
 } RecordID;
 
+typedef int PageID;
+ 
+typedef struct {
+    int page_id;
+    int slot;
+} RecordID;
+typedef struct{
+  int offset;
+  PageNode *next;
+}; PageNode 
+  
 /**
  * Compute the number of bytes required to serialize record
  */
@@ -81,4 +95,22 @@ void write_fixed_len_page(Page *page, int slot, Record *r);
 * Read a record from the page from a given slot.
 */
 void read_fixed_len_page(Page *page, int slot, Record *r);
+/**
+ * Initalize a heapfile to use the file and page size given.
+ */
+void init_heapfile(Heapfile *heapfile, int page_size, FILE *file);
+/**
+ * Allocate another page in the heapfile.  This grows the file by a page.
+ */
+PageID alloc_page(Heapfile *heapfile);
+/**
+ * Read a page into memory
+ */
+void read_page(Heapfile *heapfile, PageID pid, Page *page);
+/**
+ * Write a page from memory to disk
+ */
+void write_page(Page *page, Heapfile *heapfile, PageID pid);
+Page * getPageAt(Heapfile *heapfile, int offset);
+int  writePageAt(Heapfile *heapfile, Page * page, int offset);
 #endif
