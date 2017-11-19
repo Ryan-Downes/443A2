@@ -19,23 +19,20 @@ typedef struct {
     char mapping [];
     // potential optimization store the number of records
 } Page;
+struct PageNode{
+  int offset;
+  PageNode *next;
+}; 
 
 
 typedef struct {
     FILE *page_ptr;
     int page_size;
     PageNode *directoryLL;
-    PageNode tail;
+    PageNode *tail;
     int offset;
     int directorySlotSize;
 } Heapfile;
-
-typedef int PageID;
-
-typedef struct {
-    int page_id;
-    int slot;
-} RecordID;
 
 typedef int PageID;
  
@@ -43,10 +40,6 @@ typedef struct {
     int page_id;
     int slot;
 } RecordID;
-typedef struct{
-  int offset;
-  PageNode *next;
-}; PageNode 
   
 /**
  * Compute the number of bytes required to serialize record
@@ -113,4 +106,6 @@ void read_page(Heapfile *heapfile, PageID pid, Page *page);
 void write_page(Page *page, Heapfile *heapfile, PageID pid);
 Page * getPageAt(Heapfile *heapfile, int offset);
 int  writePageAt(Heapfile *heapfile, Page * page, int offset);
+char* tostr (int x);
+
 #endif

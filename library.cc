@@ -108,6 +108,14 @@ void read_fixed_len_page(Page *page, int slot, Record *r){
         fixed_len_read(buf, (page->slot_size), r);
     }
 }
+char * tostr (int x)
+{
+    char string[10];
+
+
+	sprintf(string,"%i",x);
+    return string;
+}
 
 /**
  * Initalize a heapfile to use the file and page size given.
@@ -116,19 +124,18 @@ void init_heapfile(Heapfile *heapfile, int page_size, FILE* file){
     heapfile->page_ptr = file;
     heapfile->page_size = page_size;
     heapfile->directorySlotSize =  ATTRIBUTE_SIZE * NUM_ATTRIBUTE;
-    int heapfile->ACTUAL_SIZE_OF_PAGE = heapfile->page_size+(heapfile->page_size/directorySlotSize);
     heapfile->offset=0;
-    Page directoryPage = new Page();
+    Page *directoryPage = new Page();
     heapfile->directoryLL = new PageNode();
     heapfile->directoryLL->offset = heapfile->offset;
     heapfile->directoryLL->next = NULL;
     heapfile->tail = heapfile->directoryLL;
     heapfile->offset=heapfile->offset+1;
-    Page dataPage = new Page();
+    Page *dataPage = new Page();
     
     Record *r = new Record();
-    r.pushback(heapfile->offset);//adds offset and free space to record;
-    r.pushback(heapfile->page_size);
+    r->push_back(tostr(heapfile->offset));//adds offset and free space to record;
+    r->push_back(tostr(heapfile->page_size));
     add_fixed_len_page(directoryPage,r);
     
 }
@@ -143,23 +150,24 @@ PageID alloc_page(Heapfile *heapfile){
     init_fixed_len_page(page, heapfile->page_size, record_size);
     FILE* heap_page = (heapfile->page_ptr);
     heapfile->offset = heapfile->offset+1;
-    writePageAt(page,heapfile->offset);
+    writePageAt(heapfile,page,heapfile->offset);
 
-    Page directoryPage* = getPageAt(heapfile->tail->offset)
+    Page *directoryPage = getPageAt(heapfile,heapfile->tail->offset);
     Record *r = new Record();///new record for heap directory
-    r.pushback(heapfile->offset);//adds offset and free space to record;
-    r.pushback(heapfile->page_size);
+    r->push_back(tostr(heapfile->offset));//adds offset and free space to record;
+    r->push_back(tostr(heapfile->page_size));
     PageID offsetToReturn = heapfile->offset;
     if (add_fixed_len_page(directoryPage ,r)){//if record add fails, need to add new page to the directory
         heapfile->offset = heapfile->offset+1;
-        offsetToReturn = heapfile-offset;
+        offsetToReturn = heapfile->offset;
         PageNode *temp=new PageNode();//consider turning into a function whenever adding a new page to the direcctory
         temp->offset=heapfile->offset;
         temp->next=NULL;
         heapfile->tail->next=temp;
         heapfile->tail=temp;
-        add_fixed_len_page(temp, r);
-        writePageAt(temp,heapfile->offset);
+		Page *tempPage = new Page();
+        add_fixed_len_page(tempPage, r);
+        writePageAt(heapfile, tempPage,heapfile->offset);
     }
     return offsetToReturn;
 }
@@ -178,10 +186,10 @@ void read_page(Heapfile *heapfile, PageID pid, Page *page){
         currentRecordsPast=currentRecordsPast+numRecords;
     }
     currentRecordsPast = currentRecordsPast - numRecords;
-    Page * directoryPage = getPageAt(temp->offset);
-    Record r*;
+    Page * directoryPage = getPageAt(heapfile,temp->offset);
+    Record * r;
     read_fixed_len_page(directoryPage, pid-currentRecordsPast, r);
-    page  = getPageAt(heapfile, r.front());
+    page  = getPageAt(heapfile, atoi(r->front()));
     
 }
 /**
@@ -199,10 +207,10 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid){
         currentRecordsPast=currentRecordsPast+numRecords;
     }
     currentRecordsPast = currentRecordsPast - numRecords;
-    Page * directoryPage = getPageAt(temp->offset);
-    Record r*;
+    Page * directoryPage = getPageAt(heapfile, temp->offset);
+    Record * r;
     read_fixed_len_page(directoryPage, pid-currentRecordsPast, r);
-    page  = writePageAt(heapfile, page, r.front());
+    writePageAt(heapfile, page, atoi(r->front()));
 
 
 
@@ -212,21 +220,25 @@ Page * getPageAt(Heapfile *heapfile, int offset){
     fseek(heapfile->page_ptr, offset, SEEK_SET);
     Page *page = new Page();
     int numSlots = heapfile->page_size/heapfile->directorySlotSize;
-    char *buffer = (char*) malloc (sizeof(char)*directorySlotSize+1);
+    char *buffer = (char*) malloc (sizeof(char)*heapfile->directorySlotSize+1);
     int count = 0;
 //while loop to read each data record in a row
-    while (count!=numslots){
+    while (count!=numSlots){
         Record *r;
         if (buffer == NULL) {fputs ("Memory error",stderr); exit (2);}
-        result = fread (buffer,1,directorySlotSize,heapfile->page_ptr);
+        fread (buffer,1,heapfile->directorySlotSize,heapfile->page_ptr);
 
-        fixed_len_read(buffer, directorySlotSize, r);
+        fixed_len_read(buffer, heapfile->directorySlotSize, r);
         count=count+1;
     }
     char *mappingbuffer = (char*) malloc (sizeof(char)*numSlots);
     if (buffer == NULL) {fputs ("Memory error",stderr); exit (2);}
-    result = fread (mappingbuffer,1,numslots,heapfile->page_ptr);
-    page->mapping = mappingbuffer;
+    fread (mappingbuffer,1,numSlots,heapfile->page_ptr);
+	for(int i=0; i < fixed_len_page_capacity(page);i++){
+            fread(mappingbuffer,1,numSlots,heapfile->page_ptr);
+		page->mapping[i]=mappingbuffer[0];
+        }
+
     return page;
 }
 
@@ -238,4 +250,10 @@ int  writePageAt(Heapfile *heapfile, Page * page, int offset){
     fwrite(page->mapping,1,page->page_size/page->slot_size, heapfile->page_ptr);
     return 0;
 }
+/**std::string tostr (int x)
+{
+    std::stringstream str;
+    istr << x;
+    return str.str();
+}**/
 
