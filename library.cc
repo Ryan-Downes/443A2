@@ -257,3 +257,45 @@ int  writePageAt(Heapfile *heapfile, Page * page, int offset){
     return str.str();
 }**/
 
+    
+	RecordIterator::RecordIterator(Heapfile *heapfile){
+	hf = heapfile;	
+	rid->page_id=0;
+    rid->slot=0;
+    cursor = heapfile->directoryLL;
+    read_page(hf, 0, curPage);
+
+	}
+Record * RecordIterator::next(){
+        Record *r;
+        if (rid->slot<fixed_len_page_capacity(curPage)){
+                read_fixed_len_page(curPage, rid->slot, r);
+                rid->slot = rid->slot+1;
+                return r;
+        }
+        else{
+                rid->slot=0;
+                rid->page_id = rid->page_id+1;
+                read_page(hf, rid->page_id, curPage);
+
+                return next();
+
+        }
+
+}
+
+bool RecordIterator::hasNext(){
+        Record *r;
+        if (rid->slot<fixed_len_page_capacity(curPage)){
+         read_fixed_len_page(curPage, rid->slot, r);
+                if (r == NULL) return false;
+        }
+        else{
+        int tempid = rid->page_id + 1;
+        Page * tempPage;
+        read_page(hf,tempid,tempPage);
+        if (tempPage == NULL) return false;
+        }
+        return true;
+}
+

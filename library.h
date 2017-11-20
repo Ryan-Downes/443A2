@@ -11,6 +11,7 @@ typedef std::vector<V> Record;
 #define ATTRIBUTE_SIZE 10
 #define NUM_ATTRIBUTE 100
 
+
 typedef struct {
 
     char *data;
@@ -107,5 +108,16 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid);
 Page * getPageAt(Heapfile *heapfile, int offset);
 int  writePageAt(Heapfile *heapfile, Page * page, int offset);
 char* tostr (int x);
+class RecordIterator {
+        Heapfile *hf;
+        RecordID *rid;
+        Page *curPage;
+        PageNode *cursor;
+	
+    public:
+	RecordIterator(Heapfile *heapfile);	
+    Record * next();
+    bool hasNext();
+};
 
 #endif
