@@ -16,9 +16,6 @@
 
 #include <string.h>
 
-
-#include <string.h>
-//TODO heapfile doesnt store linked list implementation (no way to find one directory page from another) fix this somehow
 int main(int argc, char** argv) {
     if (argc != 4) {
         printf("Argument is not correct");
@@ -28,7 +25,7 @@ int main(int argc, char** argv) {
     std::ifstream csv_file;
     csv_file.open(argv[1], std::ifstream::in);
     FILE *page_file_ptr = fopen(argv[2], "w+b");
-	Heapfile *heapfile;
+	Heapfile *heapfile = (Heapfile*) malloc(sizeof(Heapfile));
 	int page_size = atoi(argv[3]);
 	init_heapfile(heapfile, page_size, page_file_ptr);
     int record_size = ATTRIBUTE_SIZE * NUM_ATTRIBUTE;

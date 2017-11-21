@@ -112,11 +112,10 @@ class RecordIterator {
         Heapfile *hf;
         RecordID *rid;
         Page *curPage;
-        PageNode *cursor;
 	
     public:
 	RecordIterator(Heapfile *heapfile);	
-    Record * next();
+    Record  next();
     bool hasNext();
 };
 

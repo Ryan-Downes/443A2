@@ -123,20 +123,20 @@ char * tostr (int x)
 void init_heapfile(Heapfile *heapfile, int page_size, FILE* file){
     heapfile->page_ptr = file;
     heapfile->page_size = page_size;
-    heapfile->directorySlotSize =  ATTRIBUTE_SIZE * NUM_ATTRIBUTE;
+    heapfile->directorySlotSize = ATTRIBUTE_SIZE * NUM_ATTRIBUTE;
     heapfile->offset=0;
-    Page *directoryPage = new Page();
+    Page *directoryPage = (Page *)malloc(sizeof(Page) + (page_size/heapfile->directorySlotSize));
     heapfile->directoryLL = new PageNode();
     heapfile->directoryLL->offset = heapfile->offset;
     heapfile->directoryLL->next = NULL;
     heapfile->tail = heapfile->directoryLL;
     heapfile->offset=heapfile->offset+1;
-    Page *dataPage = new Page();
+    Page *dataPage = (Page *)malloc(sizeof(Page) + (page_size/heapfile->directorySlotSize));
     
-    Record *r = new Record();
-    r->push_back(tostr(heapfile->offset));//adds offset and free space to record;
-    r->push_back(tostr(heapfile->page_size));
-    add_fixed_len_page(directoryPage,r);
+   // Record *r = new Record();
+    //r->push_back(tostr(heapfile->offset));//adds offset and free space to record;
+    //r->push_back(tostr(heapfile->page_size));
+    //add_fixed_len_page(directoryPage,r);
     
 }
 
@@ -145,7 +145,7 @@ void init_heapfile(Heapfile *heapfile, int page_size, FILE* file){
  */
 PageID alloc_page(Heapfile *heapfile){
 //update directory
-    Page *page = new Page();
+    Page *page = (Page *)malloc(sizeof(Page) + (heapfile->page_size/heapfile->directorySlotSize));
     int record_size = ATTRIBUTE_SIZE * NUM_ATTRIBUTE;
     init_fixed_len_page(page, heapfile->page_size, record_size);
     FILE* heap_page = (heapfile->page_ptr);
@@ -165,7 +165,7 @@ PageID alloc_page(Heapfile *heapfile){
         temp->next=NULL;
         heapfile->tail->next=temp;
         heapfile->tail=temp;
-		Page *tempPage = new Page();
+	Page *tempPage = (Page *)malloc(sizeof(Page) + (heapfile->page_size/record_size));
         add_fixed_len_page(tempPage, r);
         writePageAt(heapfile, tempPage,heapfile->offset);
     }
@@ -215,6 +215,10 @@ void write_page(Page *page, Heapfile *heapfile, PageID pid){
 
 
 }
+/**
+ * Returns the page at a given offset
+ */
+
 Page * getPageAt(Heapfile *heapfile, int offset){
     
     fseek(heapfile->page_ptr, offset, SEEK_SET);
@@ -222,7 +226,6 @@ Page * getPageAt(Heapfile *heapfile, int offset){
     int numSlots = heapfile->page_size/heapfile->directorySlotSize;
     char *buffer = (char*) malloc (sizeof(char)*heapfile->directorySlotSize+1);
     int count = 0;
-//while loop to read each data record in a row
     while (count!=numSlots){
         Record *r;
         if (buffer == NULL) {fputs ("Memory error",stderr); exit (2);}
@@ -243,33 +246,31 @@ Page * getPageAt(Heapfile *heapfile, int offset){
 }
 
 
+/**
+ * Writes the given page at the offset specified
+ */
+
 int  writePageAt(Heapfile *heapfile, Page * page, int offset){
 
     fseek(heapfile->page_ptr, offset, SEEK_SET);
     fwrite(page->data, 1, page->page_size,heapfile->page_ptr );
     fwrite(page->mapping,1,page->page_size/page->slot_size, heapfile->page_ptr);
     return 0;
-}
-/**std::string tostr (int x)
-{
-    std::stringstream str;
-    istr << x;
-    return str.str();
-}**/
-
-    
-	RecordIterator::RecordIterator(Heapfile *heapfile){
-	hf = heapfile;	
+} 
+RecordIterator::RecordIterator(Heapfile *heapfile){
+	hf =  (Heapfile*) malloc(sizeof(Heapfile));
+	hf = heapfile;
+	rid = (RecordID*) malloc(sizeof(RecordID));	
 	rid->page_id=0;
     rid->slot=0;
-    cursor = heapfile->directoryLL;
+	curPage = (Page *)malloc(sizeof(Page) + (hf->page_size/hf->directorySlotSize));
     read_page(hf, 0, curPage);
 
 	}
-Record * RecordIterator::next(){
-        Record *r;
+Record  RecordIterator::next(){
+        Record r;
         if (rid->slot<fixed_len_page_capacity(curPage)){
-                read_fixed_len_page(curPage, rid->slot, r);
+                read_fixed_len_page(curPage, rid->slot, &r);
                 rid->slot = rid->slot+1;
                 return r;
         }
@@ -284,17 +285,21 @@ Record * RecordIterator::next(){
 
 }
 
+/**
+ * Class that iterates over records.
+ */
+
 bool RecordIterator::hasNext(){
-        Record *r;
+        Record r;
         if (rid->slot<fixed_len_page_capacity(curPage)){
-         read_fixed_len_page(curPage, rid->slot, r);
-                if (r == NULL) return false;
+         read_fixed_len_page(curPage, rid->slot, &r);
+                if (r.empty()) return false;
         }
         else{
         int tempid = rid->page_id + 1;
-        Page * tempPage;
+        Page * tempPage = (Page *)malloc(sizeof(Page) + (hf->page_size/hf->directorySlotSize));
         read_page(hf,tempid,tempPage);
-        if (tempPage == NULL) return false;
+        if (r.empty()) return false;
         }
         return true;
 }
